@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,37 +32,59 @@ func FetchApiString(url string) (string, error) {
 	return string(body), nil
 }
 
+func removeOldData(files []fs.FileInfo) {
+	dir := "./date-backups/"
+	presentData := time.Now().Format("2006-January-02")
+
+	for _, file := range files {
+		if file.Name() != presentData {
+			fmt.Println("Removing data for " + file.Name() + "...")
+			os.RemoveAll(dir + file.Name())
+		}
+	}
+}
+
 func saveData() {
 	dir := "./date-backups/"
 
 	if !itExists(dir) {
 		fmt.Println("Making initial directory...")
-		os.Mkdir(dir, 0755)
+		os.Mkdir(dir, 0777)
 	} else {
 		fmt.Println("Initial directory already exists...")
 	}
 
-	dateBackup := dir + time.Now().Format("2006-January-02")
+	currentDate := time.Now().Format("2006-January-02")
+	dateBackup := dir + currentDate
 
 	if !itExists(dateBackup) {
 		fmt.Println("This date's backup does't exists\n" +
 			"Making this date's backup directory...")
 
-		err := os.Mkdir(dateBackup, 0755)
-		if err != nil {
-			log.Fatal(err)
+		dateBackup = dir + "saving"
+		if !itExists(dateBackup) {
+			err := os.Mkdir(dateBackup, 0777)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
+
 	} else {
 		fmt.Println("This date's directory exists...\n")
 	}
 
 	countries := getCountries()
 
-	dateBackup += "/"
+	dateBackupDirectory := dateBackup + "/"
 
 	fmt.Println("Saving individual country data...\n")
 	for i := 0; i < len(countries); i++ {
-		countryFilePath := dateBackup + countries[i].Slug
+
+		if countries[i].Slug == "united-states" {
+			continue
+		}
+
+		countryFilePath := dateBackupDirectory + countries[i].Slug
 		if itExists(countryFilePath + ".txt") {
 			fmt.Printf("(%d/%d) %s's data already exists...\n", i+1, len(countries), countries[i].Country)
 			continue
@@ -70,12 +93,20 @@ func saveData() {
 		fmt.Printf("(%d/%d) Saving %s's data...\n", i+1, len(countries), countries[i].Country)
 		responseString, err := FetchApiString("https://api.covid19api.com/country/" + countries[i].Slug)
 		if err != nil {
-			fmt.Println("Encountered error...\nRetrying...")
+			fmt.Println("Encountered error fetching...\nSleeping for 5 seconds...")
+			time.Sleep(5 * time.Second)
 			i--
 			continue
 		}
 
-		file, err2 := os.Create(dateBackup + countries[i].Slug + ".txt")
+		if len(responseString) < 1000 {
+			fmt.Println("Encountered error fetching...\nSleeping for 5 seconds...")
+			time.Sleep(5 * time.Second)
+			i--
+			continue
+		}
+
+		file, err2 := os.Create(dateBackupDirectory + countries[i].Slug + ".txt")
 		if err2 != nil {
 			fmt.Println("Encountered error...\nRetrying...")
 			i--
@@ -91,5 +122,18 @@ func saveData() {
 		}
 
 	}
-	fmt.Println("All COVID19 data saved successfully...")
+	fmt.Println("All COVID19 data saved successfully\n")
+
+	fmt.Println("Changing direcotory's name to current date...")
+	os.Rename(dateBackup, dir+currentDate)
+
+	fmt.Println("Checking for old data...")
+	files, _ := ioutil.ReadDir("./date-backups/")
+	if len(files) > 1 {
+		removeOldData(files)
+		fmt.Println("All old data removed\n")
+	} else {
+		fmt.Println("No old data present\n")
+	}
+
 }

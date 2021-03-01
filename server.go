@@ -3,6 +3,8 @@ package main
 func main() {
 	saveData()
 
+	// fmt.Println(time.RFC822)
+
 	// url := "https://api.covid19api.com/country/"
 	// url = url + getCountries()[0].Slug
 	// responseString, err := FetchApiString(url)
