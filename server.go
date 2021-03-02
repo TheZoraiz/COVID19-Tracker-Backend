@@ -1,23 +1,66 @@
 package main
 
+import (
+	"fmt"
+	"io/fs"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+func getBackupDirectoryPath(dir string, files []fs.FileInfo, r *http.Request) string {
+	for _, file := range files {
+		if file.Name() != "saving" && file.Name() != "countries.txt" {
+			dir += file.Name() + r.URL.Path + ".txt"
+		}
+	}
+	return dir
+}
+
+func countryHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	dir := "./date-backups/"
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	dir = getBackupDirectoryPath(dir, files, r)
+
+	data, err2 := ioutil.ReadFile(dir)
+	if err2 != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Fprintf(w, "%s", string(data))
+}
+
+func countriesHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	dir := "./date-backups/countries.txt"
+
+	data, err2 := ioutil.ReadFile(dir)
+	if err2 != nil {
+		fmt.Fprintf(w, "Error!")
+		return
+	}
+
+	fmt.Fprintf(w, "%s", string(data))
+}
+
 func main() {
-	saveData()
+	// saveData()
 
-	// fmt.Println(time.RFC822)
+	http.HandleFunc("/", countryHandler)
+	http.HandleFunc("/countries", countriesHandler)
 
-	// url := "https://api.covid19api.com/country/"
-	// url = url + getCountries()[0].Slug
-	// responseString, err := FetchApiString(url)
-	// if err != nil {
-	// 	fmt.Println("Error lolol:", err)
-	// }
-	// fmt.Println(responseString)
-
-	// var decoded []interface{}
-	// err := json.Unmarshal([]byte(responseString), &decoded)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// fmt.Println(getCountries())
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
