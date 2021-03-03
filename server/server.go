@@ -69,6 +69,7 @@ func countriesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// For heroku environment
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
