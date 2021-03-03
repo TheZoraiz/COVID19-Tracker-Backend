@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func enableCors(w *http.ResponseWriter) {
@@ -35,10 +36,11 @@ func countryHandler(w http.ResponseWriter, r *http.Request) {
 
 	data, err2 := ioutil.ReadFile(dir)
 	if err2 != nil {
-		fmt.Println(err)
+		fmt.Println(err2)
 		return
 	}
 
+	fmt.Println("Sending " + dir)
 	fmt.Fprintf(w, "%s", string(data))
 }
 
@@ -53,14 +55,19 @@ func countriesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("Sending " + dir)
 	fmt.Fprintf(w, "%s", string(data))
 }
 
 func main() {
-	// saveData()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = ":8080"
+	}
 
 	http.HandleFunc("/", countryHandler)
 	http.HandleFunc("/countries", countriesHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server listening on port" + port)
+	log.Fatal(http.ListenAndServe(port, nil))
 }
