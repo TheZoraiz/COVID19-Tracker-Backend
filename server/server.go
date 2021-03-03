@@ -13,9 +13,17 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
+func getCurrentDirectory() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return dir
+}
+
 func getBackupDirectoryPath(dir string, files []fs.FileInfo, r *http.Request) string {
 	for _, file := range files {
-		if file.Name() != "saving" && file.Name() != "countries.txt" {
+		if file.Name() != "saving" && file.Name() != "countries.txt" && file.Name() != "Server" {
 			dir += file.Name() + r.URL.Path + ".txt"
 		}
 	}
@@ -25,7 +33,7 @@ func getBackupDirectoryPath(dir string, files []fs.FileInfo, r *http.Request) st
 func countryHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	dir := "./date-backups/"
+	dir := getCurrentDirectory() + "/date-backups/"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Println(err)
@@ -47,7 +55,7 @@ func countryHandler(w http.ResponseWriter, r *http.Request) {
 func countriesHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	dir := "./date-backups/countries.txt"
+	dir := getCurrentDirectory() + "/date-backups/countries.txt"
 
 	data, err := ioutil.ReadFile(dir)
 	if err != nil {
