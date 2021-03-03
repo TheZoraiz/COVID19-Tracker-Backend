@@ -41,7 +41,7 @@ func removeOldData(files []fs.FileInfo) {
 	presentData := time.Now().Format("2006-January-02")
 
 	for _, file := range files {
-		if file.Name() != presentData {
+		if file.Name() != presentData && file.Name() != "countries.txt" {
 			fmt.Println("Removing data for " + file.Name() + "...")
 			os.RemoveAll(dir + file.Name())
 		}

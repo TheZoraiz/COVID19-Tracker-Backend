@@ -25,7 +25,7 @@ func getBackupDirectoryPath(dir string, files []fs.FileInfo, r *http.Request) st
 func countryHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	dir := "./date-backups/"
+	dir := "../date-backups/"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Println(err)
@@ -47,10 +47,11 @@ func countryHandler(w http.ResponseWriter, r *http.Request) {
 func countriesHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	dir := "./date-backups/countries.txt"
+	dir := "../date-backups/countries.txt"
 
-	data, err2 := ioutil.ReadFile(dir)
-	if err2 != nil {
+	data, err := ioutil.ReadFile(dir)
+	if err != nil {
+		fmt.Println(err)
 		fmt.Fprintf(w, "Error!")
 		return
 	}
@@ -62,12 +63,12 @@ func countriesHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8080"
+		port = "8080"
 	}
 
 	http.HandleFunc("/", countryHandler)
 	http.HandleFunc("/countries", countriesHandler)
 
-	fmt.Println("Server listening on port" + port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	fmt.Println("Server listening on port:" + port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
