@@ -37,7 +37,7 @@ func FetchApiString(url string) (string, error) {
 }
 
 func removeOldData(files []fs.FileInfo) {
-	dir := "./date-backups/"
+	dir := "./server/date-backups/"
 	presentData := time.Now().Format("2006-January-02")
 
 	for _, file := range files {
@@ -49,7 +49,7 @@ func removeOldData(files []fs.FileInfo) {
 }
 
 func saveData() {
-	dir := "./date-backups/"
+	dir := "./server/date-backups/"
 
 	if !itExists(dir) {
 		fmt.Println("Making initial directory...")
@@ -132,8 +132,8 @@ func saveData() {
 	os.Rename(dateBackup, dir+currentDate)
 
 	fmt.Println("Checking for old data...")
-	files, _ := ioutil.ReadDir("./date-backups/")
-	if len(files) > 1 {
+	files, _ := ioutil.ReadDir("./server/date-backups/")
+	if len(files) > 2 {
 		removeOldData(files)
 		fmt.Println("All old data removed\n")
 	} else {

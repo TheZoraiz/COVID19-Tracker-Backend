@@ -25,7 +25,7 @@ func getBackupDirectoryPath(dir string, files []fs.FileInfo, r *http.Request) st
 func countryHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	dir := "../date-backups/"
+	dir := "./date-backups/"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Println(err)
@@ -47,7 +47,7 @@ func countryHandler(w http.ResponseWriter, r *http.Request) {
 func countriesHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	dir := "../date-backups/countries.txt"
+	dir := "./date-backups/countries.txt"
 
 	data, err := ioutil.ReadFile(dir)
 	if err != nil {
