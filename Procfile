@@ -1,1 +1,1 @@
-web: ./Server
+web: ./server/Server
