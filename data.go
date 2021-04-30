@@ -1,203 +1,44 @@
 package main
 
-type Cont struct {
-	Country string
-	Slug    string
+import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+)
+
+func fetchCountries() (string, error) {
+	response, err := http.Get("https://api.covid19api.com/summary")
+	if err != nil {
+		panic(err)
+	}
+	defer response.Body.Close()
+	body, err2 := ioutil.ReadAll(response.Body)
+	if err2 != nil {
+		panic(err2)
+	}
+	return string(body), nil
 }
 
-func getCountries() []Cont {
-	countries := []Cont{
-		{Country: "Afghanistan", Slug: "afghanistan"},
-		{Country: "Albania", Slug: "albania"},
-		{Country: "Algeria", Slug: "algeria"},
-		{Country: "Andorra", Slug: "andorra"},
-		{Country: "Angola", Slug: "angola"},
-		{Country: "Antigua and Barbuda", Slug: "antigua-and-barbuda"},
-		{Country: "Argentina", Slug: "argentina"},
-		{Country: "Armenia", Slug: "armenia"},
-		{Country: "Australia", Slug: "australia"},
-		{Country: "Austria", Slug: "austria"},
-		{Country: "Azerbaijan", Slug: "azerbaijan"},
-		{Country: "Bahamas", Slug: "bahamas"},
-		{Country: "Bahrain", Slug: "bahrain"},
-		{Country: "Bangladesh", Slug: "bangladesh"},
-		{Country: "Barbados", Slug: "barbados"},
-		{Country: "Belarus", Slug: "belarus"},
-		{Country: "Belgium", Slug: "belgium"},
-		{Country: "Belize", Slug: "belize"},
-		{Country: "Benin", Slug: "benin"},
-		{Country: "Bhutan", Slug: "bhutan"},
-		{Country: "Bolivia", Slug: "bolivia"},
-		{Country: "Bosnia and Herzegovina", Slug: "bosnia-and-herzegovina"},
-		{Country: "Botswana", Slug: "botswana"},
-		{Country: "Brazil", Slug: "brazil"},
-		{Country: "Brunei Darussalam", Slug: "brunei"},
-		{Country: "Bulgaria", Slug: "bulgaria"},
-		{Country: "Burkina Faso", Slug: "burkina-faso"},
-		{Country: "Burundi", Slug: "burundi"},
-		{Country: "Cambodia", Slug: "cambodia"},
-		{Country: "Cameroon", Slug: "cameroon"},
-		{Country: "Canada", Slug: "canada"},
-		{Country: "Cape Verde", Slug: "cape-verde"},
-		{Country: "Central African Republic", Slug: "central-african-republic"},
-		{Country: "Chad", Slug: "chad"},
-		{Country: "Chile", Slug: "chile"},
-		{Country: "China", Slug: "china"},
-		{Country: "Colombia", Slug: "colombia"},
-		{Country: "Comoros", Slug: "comoros"},
-		{Country: "Congo (Brazzaville)", Slug: "congo-brazzaville"},
-		{Country: "Congo (Kinshasa)", Slug: "congo-kinshasa"},
-		{Country: "Costa Rica", Slug: "costa-rica"},
-		{Country: "Croatia", Slug: "croatia"},
-		{Country: "Cuba", Slug: "cuba"},
-		{Country: "Cyprus", Slug: "cyprus"},
-		{Country: "Czech Republic", Slug: "czech-republic"},
-		{Country: "Côte d'Ivoire", Slug: "cote-divoire"},
-		{Country: "Denmark", Slug: "denmark"},
-		{Country: "Djibouti", Slug: "djibouti"},
-		{Country: "Dominica", Slug: "dominica"},
-		{Country: "Dominican Republic", Slug: "dominican-republic"},
-		{Country: "Ecuador", Slug: "ecuador"},
-		{Country: "Egypt", Slug: "egypt"},
-		{Country: "El Salvador", Slug: "el-salvador"},
-		{Country: "Equatorial Guinea", Slug: "equatorial-guinea"},
-		{Country: "Eritrea", Slug: "eritrea"},
-		{Country: "Estonia", Slug: "estonia"},
-		{Country: "Ethiopia", Slug: "ethiopia"},
-		{Country: "Fiji", Slug: "fiji"},
-		{Country: "Finland", Slug: "finland"},
-		{Country: "France", Slug: "france"},
-		{Country: "Gabon", Slug: "gabon"},
-		{Country: "Gambia", Slug: "gambia"},
-		{Country: "Georgia", Slug: "georgia"},
-		{Country: "Germany", Slug: "germany"},
-		{Country: "Ghana", Slug: "ghana"},
-		{Country: "Greece", Slug: "greece"},
-		{Country: "Grenada", Slug: "grenada"},
-		{Country: "Guatemala", Slug: "guatemala"},
-		{Country: "Guinea", Slug: "guinea"},
-		{Country: "Guinea-Bissau", Slug: "guinea-bissau"},
-		{Country: "Guyana", Slug: "guyana"},
-		{Country: "Haiti", Slug: "haiti"},
-		{Country: "Holy See (Vatican City State)", Slug: "holy-see-vatican-city-state"},
-		{Country: "Honduras", Slug: "honduras"},
-		{Country: "Hungary", Slug: "hungary"},
-		{Country: "Iceland", Slug: "iceland"},
-		{Country: "India", Slug: "india"},
-		{Country: "Indonesia", Slug: "indonesia"},
-		{Country: "Iran, Islamic Republic of", Slug: "iran"},
-		{Country: "Iraq", Slug: "iraq"},
-		{Country: "Ireland", Slug: "ireland"},
-		{Country: "Israel", Slug: "israel"},
-		{Country: "Italy", Slug: "italy"},
-		{Country: "Jamaica", Slug: "jamaica"},
-		{Country: "Japan", Slug: "japan"},
-		{Country: "Jordan", Slug: "jordan"},
-		{Country: "Kazakhstan", Slug: "kazakhstan"},
-		{Country: "Kenya", Slug: "kenya"},
-		{Country: "Korea (South)", Slug: "korea-south"},
-		{Country: "Kuwait", Slug: "kuwait"},
-		{Country: "Kyrgyzstan", Slug: "kyrgyzstan"},
-		{Country: "Lao PDR", Slug: "lao-pdr"},
-		{Country: "Latvia", Slug: "latvia"},
-		{Country: "Lebanon", Slug: "lebanon"},
-		{Country: "Lesotho", Slug: "lesotho"},
-		{Country: "Liberia", Slug: "liberia"},
-		{Country: "Libya", Slug: "libya"},
-		{Country: "Liechtenstein", Slug: "liechtenstein"},
-		{Country: "Lithuania", Slug: "lithuania"},
-		{Country: "Luxembourg", Slug: "luxembourg"},
-		{Country: "Macedonia, Republic of", Slug: "macedonia"},
-		{Country: "Madagascar", Slug: "madagascar"},
-		{Country: "Malawi", Slug: "malawi"},
-		{Country: "Malaysia", Slug: "malaysia"},
-		{Country: "Maldives", Slug: "maldives"},
-		{Country: "Mali", Slug: "mali"},
-		{Country: "Malta", Slug: "malta"},
-		{Country: "Marshall Islands", Slug: "marshall-islands"},
-		{Country: "Mauritania", Slug: "mauritania"},
-		{Country: "Mauritius", Slug: "mauritius"},
-		{Country: "Mexico", Slug: "mexico"},
-		{Country: "Micronesia, Federated States of", Slug: "micronesia"},
-		{Country: "Moldova", Slug: "moldova"},
-		{Country: "Monaco", Slug: "monaco"},
-		{Country: "Mongolia", Slug: "mongolia"},
-		{Country: "Montenegro", Slug: "montenegro"},
-		{Country: "Morocco", Slug: "morocco"},
-		{Country: "Mozambique", Slug: "mozambique"},
-		{Country: "Myanmar", Slug: "myanmar"},
-		{Country: "Namibia", Slug: "namibia"},
-		{Country: "Nepal", Slug: "nepal"},
-		{Country: "Netherlands", Slug: "netherlands"},
-		{Country: "New Zealand", Slug: "new-zealand"},
-		{Country: "Nicaragua", Slug: "nicaragua"},
-		{Country: "Niger", Slug: "niger"},
-		{Country: "Nigeria", Slug: "nigeria"},
-		{Country: "Norway", Slug: "norway"},
-		{Country: "Oman", Slug: "oman"},
-		{Country: "Pakistan", Slug: "pakistan"},
-		{Country: "Palestinian Territory", Slug: "palestine"},
-		{Country: "Panama", Slug: "panama"},
-		{Country: "Papua New Guinea", Slug: "papua-new-guinea"},
-		{Country: "Paraguay", Slug: "paraguay"},
-		{Country: "Peru", Slug: "peru"},
-		{Country: "Philippines", Slug: "philippines"},
-		{Country: "Poland", Slug: "poland"},
-		{Country: "Portugal", Slug: "portugal"},
-		{Country: "Qatar", Slug: "qatar"},
-		{Country: "Republic of Kosovo", Slug: "kosovo"},
-		{Country: "Romania", Slug: "romania"},
-		{Country: "Russian Federation", Slug: "russia"},
-		{Country: "Rwanda", Slug: "rwanda"},
-		{Country: "Saint Kitts and Nevis", Slug: "saint-kitts-and-nevis"},
-		{Country: "Saint Lucia", Slug: "saint-lucia"},
-		{Country: "Saint Vincent and Grenadines", Slug: "saint-vincent-and-the-grenadines"},
-		{Country: "Samoa", Slug: "samoa"},
-		{Country: "San Marino", Slug: "san-marino"},
-		{Country: "Sao Tome and Principe", Slug: "sao-tome-and-principe"},
-		{Country: "Saudi Arabia", Slug: "saudi-arabia"},
-		{Country: "Senegal", Slug: "senegal"},
-		{Country: "Serbia", Slug: "serbia"},
-		{Country: "Seychelles", Slug: "seychelles"},
-		{Country: "Sierra Leone", Slug: "sierra-leone"},
-		{Country: "Singapore", Slug: "singapore"},
-		{Country: "Slovakia", Slug: "slovakia"},
-		{Country: "Slovenia", Slug: "slovenia"},
-		{Country: "Solomon Islands", Slug: "solomon-islands"},
-		{Country: "Somalia", Slug: "somalia"},
-		{Country: "South Africa", Slug: "south-africa"},
-		{Country: "South Sudan", Slug: "south-sudan"},
-		{Country: "Spain", Slug: "spain"},
-		{Country: "Sri Lanka", Slug: "sri-lanka"},
-		{Country: "Sudan", Slug: "sudan"},
-		{Country: "Suriname", Slug: "suriname"},
-		{Country: "Swaziland", Slug: "swaziland"},
-		{Country: "Sweden", Slug: "sweden"},
-		{Country: "Switzerland", Slug: "switzerland"},
-		{Country: "Syrian Arab Republic (Syria)", Slug: "syria"},
-		{Country: "Taiwan, Republic of China", Slug: "taiwan"},
-		{Country: "Tajikistan", Slug: "tajikistan"},
-		{Country: "Tanzania, United Republic of", Slug: "tanzania"},
-		{Country: "Thailand", Slug: "thailand"},
-		{Country: "Timor-Leste", Slug: "timor-leste"},
-		{Country: "Togo", Slug: "togo"},
-		{Country: "Trinidad and Tobago", Slug: "trinidad-and-tobago"},
-		{Country: "Tunisia", Slug: "tunisia"},
-		{Country: "Turkey", Slug: "turkey"},
-		{Country: "Uganda", Slug: "uganda"},
-		{Country: "Ukraine", Slug: "ukraine"},
-		{Country: "United Arab Emirates", Slug: "united-arab-emirates"},
-		{Country: "United Kingdom", Slug: "united-kingdom"},
-		{Country: "United States of America", Slug: "united-states"},
-		{Country: "Uruguay", Slug: "uruguay"},
-		{Country: "Uzbekistan", Slug: "uzbekistan"},
-		{Country: "Vanuatu", Slug: "vanuatu"},
-		{Country: "Venezuela (Bolivarian Republic)", Slug: "venezuela"},
-		{Country: "Viet Nam", Slug: "vietnam"},
-		{Country: "Yemen", Slug: "yemen"},
-		{Country: "Zambia", Slug: "zambia"},
-		{Country: "Zimbabwe", Slug: "zimbabwe"},
+type Data struct {
+	Countries []struct {
+		Country string `json:"Country"`
+		Slug    string `json:"Slug"`
+	} `json:"Countries"`
+}
+
+func getCountries() map[int][]string {
+	jsonString, _ := fetchCountries()
+	var data Data
+
+	if err := json.Unmarshal([]byte(jsonString), &data); err != nil {
+		panic(err)
 	}
 
-	return countries
+	countriesSlice := map[int][]string{}
+
+	for index, element := range data.Countries {
+		countriesSlice[index] = []string{element.Slug, element.Country}
+	}
+
+	return countriesSlice
 }

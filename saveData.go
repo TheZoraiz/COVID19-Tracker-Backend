@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -53,9 +53,11 @@ func saveData() {
 
 	if !itExists(dir) {
 		fmt.Println("Making initial directory...")
-		os.Mkdir(dir, 0777)
+		if err := os.Mkdir(dir, 0777); err != nil {
+			panic(err)
+		}
 	} else {
-		fmt.Println("Initial directory already exists...")
+		fmt.Println("Initial directory already exists...\n")
 	}
 
 	currentDate := time.Now().Format("2006-January-02")
@@ -67,65 +69,39 @@ func saveData() {
 
 		dateBackup = dir + "saving"
 		if !itExists(dateBackup) {
-			err := os.Mkdir(dateBackup, 0777)
-			if err != nil {
-				log.Fatal(err)
+			if err := os.Mkdir(dateBackup, 0777); err != nil {
+				panic(err)
 			}
 		}
 
 	} else {
-		fmt.Println("This date's directory exists...\n")
+		fmt.Println("This date's directory exists...")
 	}
 
 	countries := getCountries()
 
 	dateBackupDirectory := dateBackup + "/"
 
-	fmt.Println("Saving individual country data...\n")
-	for i := 0; i < len(countries); i++ {
+	fmt.Println("\nSaving individual country data...")
 
-		if countries[i].Slug == "united-states" {
-			continue
+	var wg sync.WaitGroup
+	for i := 0; i < len(countries); {
+
+		interval := 5
+		if interval > len(countries)-i {
+			interval = len(countries) - i
 		}
 
-		countryFilePath := dateBackupDirectory + countries[i].Slug
-		if itExists(countryFilePath + ".txt") {
-			fmt.Printf("(%d/%d) %s's data already exists...\n", i+1, len(countries), countries[i].Country)
-			continue
+		wg.Add(interval)
+		for j := 0; j < interval; j++ {
+			go saveCountry(dateBackupDirectory, countries[i][0], countries[i][1], &wg)
+			i++
 		}
-
-		fmt.Printf("(%d/%d) Saving %s's data...\n", i+1, len(countries), countries[i].Country)
-		responseString, err := FetchApiString("https://api.covid19api.com/country/" + countries[i].Slug)
-		if err != nil {
-			fmt.Println("Encountered error fetching...\nSleeping for 5 seconds...")
-			time.Sleep(5 * time.Second)
-			i--
-			continue
-		}
-
-		if len(responseString) < 1000 {
-			fmt.Println("Encountered error fetching...\nSleeping for 5 seconds...")
-			time.Sleep(5 * time.Second)
-			i--
-			continue
-		}
-
-		file, err2 := os.Create(dateBackupDirectory + countries[i].Slug + ".txt")
-		if err2 != nil {
-			fmt.Println("Encountered error...\nRetrying...")
-			i--
-			continue
-		}
-		defer file.Close()
-
-		_, err3 := file.WriteString(responseString)
-		if err3 != nil {
-			fmt.Println("Encountered error...\nRetrying...")
-			i--
-			continue
-		}
-
+		wg.Wait()
+		fmt.Printf("Progress: (%d/%d)\n\n", i, len(countries))
+		time.Sleep(time.Millisecond * 300)
 	}
+
 	fmt.Println("All COVID19 data saved successfully\n")
 
 	fmt.Println("Changing direcotory's name to current date...")
@@ -140,4 +116,51 @@ func saveData() {
 		fmt.Println("No old data present\n")
 	}
 
+}
+
+func saveCountry(dateBackupDirectory string, country string, name string, wg *sync.WaitGroup) {
+
+	if country == "united-states" {
+		wg.Done()
+		return
+	}
+
+	countryFilePath := dateBackupDirectory + country
+	if itExists(countryFilePath + ".txt") {
+		fmt.Printf("%s's data already exists...\n", name)
+		wg.Done()
+		return
+	}
+
+	fmt.Printf("Saving %s's data...\n", name)
+	responseString, err := FetchApiString("https://api.covid19api.com/country/" + country)
+	if err != nil {
+		fmt.Println("Encountered errors... Retrying in 1 second...\r")
+		time.Sleep(1 * time.Second)
+		saveCountry(dateBackupDirectory, country, name, wg)
+		return
+	}
+
+	if len(responseString) < 2000 {
+		fmt.Println("Encountered errors... Retrying in 1 second...\r")
+		time.Sleep(1 * time.Second)
+		saveCountry(dateBackupDirectory, country, name, wg)
+		return
+	}
+
+	file, err2 := os.Create(dateBackupDirectory + country + ".txt")
+	if err2 != nil {
+		fmt.Println("Encountered errors... Retrying in 1 second...\r")
+		saveCountry(dateBackupDirectory, country, name, wg)
+		return
+	}
+	defer file.Close()
+
+	if _, err3 := file.WriteString(responseString); err3 != nil {
+		fmt.Println("Encountered errors... Retrying in 1 second...\r")
+		saveCountry(dateBackupDirectory, country, name, wg)
+		return
+	}
+
+	wg.Done()
 }
